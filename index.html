@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>校園交通安全AI顧問系統 | 宜蘭高商示範版</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Noto Sans TC', '微軟正黑體', system-ui, -apple-system, BlinkMacSystemFont, 'Roboto', sans-serif;
+            background: #f0f7f0;
+            color: #1e2a2e;
+            padding: 2rem 1.5rem;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* header */
+        .hero {
+            background: linear-gradient(135deg, #1e3c2c 0%, #2a5a3a 100%);
+            color: white;
+            padding: 2rem 2rem;
+            border-radius: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        .hero h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .hero p {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+        .badge {
+            background: #f5b042;
+            color: #1e3c2c;
+            padding: 0.2rem 0.8rem;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        /* 雙欄佈局 */
+        .dashboard {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+        }
+        .form-panel {
+            flex: 1.2;
+            min-width: 280px;
+            background: white;
+            border-radius: 1.5rem;
+            padding: 1.5rem;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+            border: 1px solid #d9e6d9;
+        }
+        .result-panel {
+            flex: 2.2;
+            min-width: 400px;
+            background: #ffffffdd;
+            backdrop-filter: blur(2px);
+            border-radius: 1.5rem;
+            padding: 1.5rem;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+            border: 1px solid #c8e0c8;
+        }
+
+        /* 表單樣式 */
+        .form-group {
+            margin-bottom: 1.3rem;
+        }
+        label {
+            font-weight: 600;
+            display: block;
+            margin-bottom: 0.4rem;
+            color: #1e4620;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 0.7rem 1rem;
+            border: 1px solid #cbd5c0;
+            border-radius: 1rem;
+            font-size: 0.9rem;
+            transition: 0.2s;
+            background: #fefef7;
+        }
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #2a7a3e;
+            box-shadow: 0 0 0 3px rgba(42,122,62,0.2);
+        }
+        .mode-group {
+            background: #eef5ea;
+            padding: 0.8rem;
+            border-radius: 1rem;
+            margin-top: 0.5rem;
+        }
+        .btn-generate {
+            background: #2a7a3e;
+            color: white;
+            border: none;
+            padding: 0.9rem 1.2rem;
+            border-radius: 2rem;
+            font-weight: bold;
+            font-size: 1rem;
+            width: 100%;
+            cursor: pointer;
+            transition: 0.2s;
+            margin-top: 0.5rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .btn-generate:hover {
+            background: #1e5c2e;
+            transform: translateY(-2px);
+        }
+        .risk-tag {
+            background: #fff1e0;
+            padding: 0.2rem 0.5rem;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            color: #c25d00;
+        }
+        hr {
+            margin: 1rem 0;
+            border-color: #e2e8e0;
+        }
+        .json-view {
+            background: #1e2a2a;
+            color: #d4f1d4;
+            padding: 1rem;
+            border-radius: 1rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.8rem;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-break: break-word;
+            max-height: 350px;
+            overflow-y: auto;
+        }
+        .section-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            border-left: 6px solid #2a7a3e;
+            padding-left: 0.8rem;
+            margin: 1rem 0 0.8rem 0;
+        }
+        .card-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+            margin-bottom: 1.2rem;
+        }
+        .slogan-item {
+            background: #fef9e6;
+            padding: 0.6rem 1rem;
+            border-radius: 1rem;
+            border-left: 5px solid #f5b042;
+        }
+        .improve-item {
+            background: #e9f3e9;
+            padding: 0.7rem;
+            border-radius: 1rem;
+            margin-bottom: 0.6rem;
+        }
+        .copy-btn {
+            background: #2c3e2f;
+            border: none;
+            color: white;
+            padding: 0.3rem 0.9rem;
+            border-radius: 2rem;
+            font-size: 0.7rem;
+            cursor: pointer;
+            float: right;
+        }
+        footer {
+            margin-top: 2rem;
+            text-align: center;
+            color: #4a6741;
+            font-size: 0.8rem;
+        }
+        @media (max-width: 800px) {
+            body { padding: 1rem; }
+            .result-panel { min-width: auto; }
+        }
+        .flex-between {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="hero">
+        <h1>🚦 校園交通安全AI顧問系統 <span class="badge">AI Agent Prompt Framework</span></h1>
+        <p>基於教育部政策 + 視覺設計心理學 + 在地風險分析｜輸入學校資訊 ➜ 自動產出海報規格、標語、改善策略</p>
+    </div>
+
+    <div class="dashboard">
+        <!-- 輸入表單區 -->
+        <div class="form-panel">
+            <h2 style="margin-bottom: 1rem;">📋 學校環境設定</h2>
+            <form id="schoolForm">
+                <div class="form-group">
+                    <label>🏫 學校名稱</label>
+                    <input type="text" id="schoolName" value="國立宜蘭高級商業職業學校" placeholder="ex: 國立宜蘭高商">
+                </div>
+                <div class="form-group">
+                    <label>📍 所在縣市</label>
+                    <input type="text" id="city" value="宜蘭縣">
+                </div>
+                <div class="form-group">
+                    <label>🌦️ 氣候特徵</label>
+                    <input type="text" id="climate" value="多雨，年雨量2700mm，冬季日照短">
+                </div>
+                <div class="form-group">
+                    <label>🛣️ 周邊道路描述</label>
+                    <textarea id="roadDesc" rows="2">校門口為省道台9線，丁字路口，無左轉號誌，大型客運頻繁</textarea>
+                </div>
+                <div class="form-group">
+                    <label>📸 校園照片描述 (可選)</label>
+                    <textarea id="photoDesc" rows="2" placeholder="ex: 校門口無行人穿越道，機車棚位於側門斜坡，走廊公佈欄尺寸A2"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>🚸 學生交通型態 (百分比，總和100%)</label>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem;">
+                        <div><label>機車(%)</label> <input type="number" id="motorbike" value="30" step="1" min="0" max="100"></div>
+                        <div><label>自行車(%)</label> <input type="number" id="bike" value="45" step="1" min="0" max="100"></div>
+                        <div><label>步行(%)</label> <input type="number" id="walk" value="20" step="1" min="0" max="100"></div>
+                        <div><label>家長接送(%)</label> <input type="number" id="parent" value="5" step="1" min="0" max="100"></div>
+                        <div><label>公車/客運(%)</label> <input type="number" id="bus" value="0" step="1" min="0" max="100"></div>
+                        <div><label>其他(%)</label> <input type="number" id="other" value="0" step="1" min="0" max="100"></div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>⚠️ 已知事故熱點 (選填)</label>
+                    <input type="text" id="hotspots" value="中山路與舊城南路口近三年4起學生事故">
+                </div>
+                <div class="form-group">
+                    <label>🎯 特殊需求</label>
+                    <input type="text" id="specialReq" value="加強機車安全與雨天宣導">
+                </div>
+                <button type="button" class="btn-generate" id="generateBtn">✨ 生成 AI 顧問報告 ✨</button>
+            </form>
+            <div class="mode-group" style="margin-top: 1rem;">
+                💡 <strong>System Prompt 內建</strong>：交通安全專家＋視覺設計＋政策分析。依公式產出 JSON 格式 (海報/標語/改善建議)
+            </div>
+        </div>
+
+        <!-- 結果展示區 -->
+        <div class="result-panel" id="resultPanel">
+            <div class="flex-between">
+                <h2>📄 AI 顧問輸出報告</h2>
+                <button id="copyJsonBtn" class="copy-btn" style="background:#4a6741;">📋 複製 JSON</button>
+            </div>
+            <div id="aiOutputContent">
+                <p style="color: #6c7a5e; text-align: center; padding: 2rem;">點擊「生成 AI 顧問報告」後，將依據您輸入的學校資訊，產出完整風險分析、海報設計規格、10組標語及改善建議 ✨</p>
+            </div>
+            <!-- 簡要視覺化區塊 -->
+            <div id="visualSummary" style="margin-top: 1rem;"></div>
+        </div>
+    </div>
+    <footer>
+        🔍 基於「校園交通安全AI顧問PRD」規範 | 輸出符合JSON Schema | 標語公式：動詞＋風險＋行動｜可導入真實LLM API增強生成
+    </footer>
+</div>
+
+<script>
+    // ---------- 核心 AI 生成邏輯 (模擬但完全基於輸入動態生成，遵循PRD公式) ----------
+    function generateAdvisoryReport(input) {
+        // 解析交通型態
+        const mode = {
+            motorbike: parseInt(input.motorbike) || 0,
+            bike: parseInt(input.bike) || 0,
+            walk: parseInt(input.walk) || 0,
+            parent: parseInt(input.parent) || 0,
+            bus: parseInt(input.bus) || 0,
+            other: parseInt(input.other) || 0
+        };
+        // 自動正規化加總 (若不等於100則按比例調整, 簡單處理)
+        let total = mode.motorbike+mode.bike+mode.walk+mode.parent+mode.bus+mode.other;
+        if(total !== 100 && total > 0) {
+            // 簡易歸一化，讓使用者友好
+            let factor = 100/total;
+            for(let k in mode) mode[k] = Math.round(mode[k]*factor);
+        }
+        const topMode = Object.entries(mode).sort((a,b)=>b[1]-a[1])[0][0];
+        let highRiskVehicle = [];
+        if(mode.motorbike > 15) highRiskVehicle.push("機車");
+        if(mode.bike > 30) highRiskVehicle.push("自行車");
+        if(highRiskVehicle.length===0) highRiskVehicle.push("步行/穿越路口風險");
+        
+        // 風險分析
+        const climateRisk = (input.climate.includes("多雨") || input.climate.includes("雨")) ? "雨天濕滑、視線不良" : "一般天氣";
+        const intersectionRisk = (input.roadDesc.includes("丁字") || input.roadDesc.includes("無號誌")) ? "校門口丁字路口/無左轉號誌，衝突風險高" : "路口車流複雜";
+        const riskLocations = [intersectionRisk, (input.hotspots || "校門口周邊")];
+        const riskBehaviors = [];
+        if(mode.motorbike > 10) riskBehaviors.push("未戴安全帽、搶黃燈");
+        if(mode.bike > 20) riskBehaviors.push("自行車夜間未開燈、逆向");
+        riskBehaviors.push("雨天未減速、分心滑手機");
+        
+        // 標語庫生成 (動態融合學校名稱、風險)
+        const schoolShort = input.schoolName.replace("國立","").replace("高級","").replace("商業職業學校","").replace("高商","") + "高商";
+        const schoolTag = schoolShort.length>8 ? "校園" : schoolShort;
+        const sloganLib = [
+            { text: `騎車戴帽，安全報到`, risk: "未戴安全帽", tip: "押韻+行動" },
+            { text: `一停二看三通過，平安回家最快樂`, risk: "路口闖越", tip: "數字口訣" },
+            { text: `雨天慢行，安全隨行`, risk: "雨天打滑", tip: "雙行押韻" },
+            { text: `不搶黃燈，不留遺憾`, risk: "搶黃燈", tip: "對比反差" },
+            { text: `路上不分心，專心才安心`, risk: "分心駕駛", tip: "對比強化" },
+            { text: `${schoolTag}好學生，安全好習慣`, risk: "綜合", tip: "歸屬感+正向" },
+            { text: `繫好安全帶，家人不等待`, risk: "未繫安全帶", tip: "情感連結" },
+            { text: `無照不上路，平安才酷`, risk: "無照駕駛", tip: "同儕語言" },
+            { text: `你我一起，安全第一`, risk: "綜合", tip: "集體責任" },
+            { text: `巷口停看聽，安全第一名`, risk: "視線死角", tip: "停看聽記憶點" }
+        ];
+        // 若下雨風險高，替換或增加雨天專屬標語
+        if(climateRisk.includes("雨天")) {
+            sloganLib[2] = { text: `宜蘭雨天請減速，緊急煞車會失控`, risk: "雨天打滑", tip: "情境具體" };
+        }
+        // 產生10組
+        let slogans = sloganLib.slice(0,10).map((s,idx) => ({
+            編號: idx+1,
+            標語: s.text,
+            對應風險行為: s.risk,
+            記憶技巧: s.tip,
+            建議放置海報: idx%3===0 ? "機車棚" : (idx%2===0 ? "校門口" : "走廊")
+        }));
+        
+        // 海報設計方案 (依照場域動態)
+        const colorTheme = climateRisk.includes("雨天") ? "黃黑警示+藍白輔助" : "藍白/黃黑";
+        const posters = {
+            校門口_大型海報: {
+                建議尺寸: "A1 (594x841mm)",
+                主色調: "黃色 + 黑色 (高對比警示)",
+                圖文比例: "圖像50% / 文字35% / 留白15%",
+                最小字級: "主標題≥120pt, 內文≥28pt",
+                視覺構圖描述: `插畫呈現學生騎機車/自行車於雨天路口減速，背景為${input.schoolName}校門意象，右下角標語「${slogans[0].標語}」。`,
+                圖像生成提示詞: `A1 vertical safety poster for ${input.schoolName}, Taiwan, yellow-black background, illustration of students wearing helmets on scooters slowing down at a rainy T-junction, large bold Chinese text: "${slogans[0].標語}", school badge, high contrast, clear action-oriented.`,
+                建議張貼位置細部: "校門口警衛室旁公告欄，離地120cm，防水護貝"
+            },
+            走廊_中型海報: {
+                建議尺寸: "A2 (420x594mm)",
+                主色調: "藍色 + 白色 (安心感)",
+                圖文比例: "圖像40% / 文字40% / 留白20%",
+                最小字級: "主標題≥72pt, 內文≥20pt",
+                視覺構圖描述: `F型動線設計，左側為風險熱點地圖示意，右側列出3項安全口訣，融入學校吉祥物。`,
+                圖像生成提示詞: `A2 corridor safety poster, blue and white, F-pattern layout, simple map showing school intersection hot spots, cartoon students walking/biking, Chinese safety tips list.`,
+                建議張貼位置細部: "各班走廊公佈欄、穿堂立柱，視線水平高度"
+            },
+            機車棚_警示海報: {
+                建議尺寸: "A2 防水護貝",
+                主色調: "螢光黃 + 黑 + 紅輔助",
+                圖文比例: "圖像65% / 文字30% / 留白5%",
+                最小字級: "主標題≥80pt，無內文",
+                視覺構圖描述: `巨大警示三角形，中央為安全帽與機車插畫，標語巨大化「騎車戴帽，安全報到」。`,
+                圖像生成提示詞: `High-impact A2 poster for scooter parking lot, fluorescent yellow and black, huge helmet icon, bold text "Ride with Helmet, Arrive Safely" in Chinese, simple and urgent, no complex background.`,
+                建議張貼位置細部: "機車棚出入口立柱及兩側牆面，每5公尺一張"
+            }
+        };
+        
+        // 改善建議 (立即+中長期)
+        const immediateActions = [
+            { 行動項目: "張貼雨天警示海報", 具體做法: `於機車棚及校門口張貼A2/A1防水海報，特別標註「雨天降速」`, 預期效果: "提升雨天減速意識", 為什麼有效: "宜蘭多雨，針對性提醒能改變駕駛行為" },
+            { 行動項目: "早會/班級宣導", 具體做法: `利用學生集會分享校周邊事故熱點與${slogans[0].標語}`, 預期效果: "一周內提升標語記憶率", 為什麼有效: "重複曝光+權威場合強化" },
+            { 行動項目: "發送反光貼紙", 具體做法: `為自行車學生發放車燈與反光手環，校門口隨機檢查`, 預期效果: "夜間能見度提升", 為什麼有效: "立即降低夜間碰撞風險" }
+        ];
+        const longActions = [
+            { 行動項目: "協調增設左轉號誌", 具體做法: `函請縣府交通處評估校門口丁字路口增設左轉專用時相`, 預期效果: "減少轉彎衝突事故30%", 為什麼有效: "硬體改善從根本降低人為失誤" },
+            { 行動項目: "交通安全融入課程", 具體做法: `設計「危險感知」互動簡報，結合校園周邊地圖`, 預期效果: "培養風險預測能力", 為什麼有效: "教育部五大知能導向，長期素養建立" },
+            { 行動項目: "學生交安志工隊", 具體做法: `招募學生於上下學時段協助導護與宣導`, 預期效果: "同儕影響提高遵守率", 為什麼有效: "同儕監督比師長規勸更有效" }
+        ];
+        
+        // 評估KPI
+        const evalPlan = {
+            前測方法: "於宣導前一週隨機抽樣100位學生，問卷調查標語認識度及自陳安全行為",
+            後測方法: "海報張貼後四週再測同一群體，比較標語回憶率與行為改變",
+            事故率追蹤: "請校安中心統計宣導前後半年內校周邊500m學生交通事故件數",
+            KPI建議: {
+                標語記憶率: "目標 ≥ 60% (能回憶至少一組正確標語)",
+                風險行為改善率: "目標 ≥ 30% (未戴安全帽比率下降)",
+                事故降低率: "目標 ≥ 20% (對比去年同期)"
+            }
+        };
+        
+        // 組合最終JSON
+        const outputJson = {
+            風險分析摘要: {
+                高風險運具: highRiskVehicle,
+                高風險時段: ["上下學尖峰07:00-08:00", "雨天放學時段", "冬季晨間視線差"],
+                高風險地點: [input.hotspots || "校門口丁字路口", "機車棚出入口", "校旁無號誌巷口"],
+                關鍵風險行為: riskBehaviors
+            },
+            海報設計方案: posters,
+            標語清單: slogans,
+            校園交通改善建議: {
+                立即行動一週內: immediateActions,
+                中長期計畫一學期內: longActions
+            },
+            圖像生成提示詞彙總: {
+                DALL_E_提示詞_校門口: posters.校門口_大型海報.圖像生成提示詞,
+                DALL_E_提示詞_走廊: posters.走廊_中型海報.圖像生成提示詞,
+                DALL_E_提示詞_機車棚: posters.機車棚_警示海報.圖像生成提示詞
+            },
+            評估與追蹤建議: evalPlan
+        };
+        
+        return outputJson;
+    }
+    
+    // 渲染HTML結果 (以卡片和JSON同時呈現)
+    function renderResultToUI(data) {
+        let html = `<div style="margin-bottom: 1rem;"><details><summary>📋 查看完整 JSON (點擊展開)</summary><div class="json-view" id="fullJsonView">${JSON.stringify(data, null, 2)}</div></details></div>`;
+        // 風險摘要卡片
+        html += `<div class="section-title">⚠️ 風險分析摘要</div>
+        <div style="background:#fef2e8; border-radius:1rem; padding:0.8rem; margin-bottom:1rem;">
+            <strong>🚨 高風險運具：</strong> ${data.風險分析摘要.高風險運具.join(", ")}<br>
+            <strong>⏱️ 高風險時段：</strong> ${data.風險分析摘要.高風險時段.join("、")}<br>
+            <strong>📍 高風險地點：</strong> ${data.風險分析摘要.高風險地點.join("；")}<br>
+            <strong>⚠️ 關鍵行為：</strong> ${data.風險分析摘要.關鍵風險行為.join("、")}
+        </div>`;
+        
+        // 海報重點
+        html += `<div class="section-title">🎨 海報設計規格 (摘要)</div><div class="card-list">`;
+        for(let [key, val] of Object.entries(data.海報設計方案)) {
+            html += `<div style="background:#f5faf5; padding:0.7rem; border-radius:1rem;"><strong>📌 ${key}</strong><br>尺寸：${val.建議尺寸} / 主色調：${val.主色調}<br>最小字級：${val.最小字級}<br><span style="font-size:0.75rem;">🎯 構圖：${val.視覺構圖描述.substring(0,80)}...</span></div>`;
+        }
+        html += `</div>`;
+        
+        // 標語清單 (前5個展示)
+        html += `<div class="section-title">📢 交通安全標語 (10組)</div><div class="card-list">`;
+        data.標語清單.slice(0,10).forEach(s => {
+            html += `<div class="slogan-item"><strong>「${s.標語}」</strong> — ${s.對應風險行為}<span style="float:right; font-size:0.7rem;">✨${s.記憶技巧}</span></div>`;
+        });
+        html += `</div>`;
+        
+        // 改善建議
+        html += `<div class="section-title">⚡ 立即行動 (一週內)</div><div class="card-list">`;
+        data.校園交通改善建議.立即行動一週內.forEach(a => {
+            html += `<div class="improve-item"><strong>✅ ${a.行動項目}</strong><br>📌 ${a.具體做法}<br><span style="color:#2a7a3e;">🎯 預期效果：${a.預期效果}</span><br>📖 為什麼有效：${a.為什麼有效}</div>`;
+        });
+        html += `</div><div class="section-title">📅 中長期計畫 (一學期)</div><div class="card-list">`;
+        data.校園交通改善建議.中長期計畫一學期內.forEach(a => {
+            html += `<div class="improve-item"><strong>✅ ${a.行動項目}</strong><br>📌 ${a.具體做法}<br><span style="color:#2a7a3e;">🎯 ${a.預期效果}</span><br>📖 ${a.為什麼有效}</div>`;
+        });
+        html += `</div>`;
+        
+        // KPI摘要
+        html += `<div class="section-title">📊 評估KPI建議</div><div style="background:#e3f0e3; border-radius:1rem; padding:0.8rem;">`;
+        html += `<strong>📈 標語記憶率目標：</strong> ${data.評估與追蹤建議.KPI建議.標語記憶率}<br>`;
+        html += `<strong>📉 事故降低率目標：</strong> ${data.評估與追蹤建議.KPI建議.事故降低率}<br>`;
+        html += `<strong>🔍 後測方法：</strong> ${data.評估與追蹤建議.後測方法}</div>`;
+        
+        html += `<div style="margin-top: 1rem; font-size:0.75rem; text-align:right;">✔️ 依據校園交通管理AI顧問系統 PRD 生成，符合教育部政策與視覺心理學</div>`;
+        return html;
+    }
+    
+    // 從表單收集資料
+    function collectFormData() {
+        return {
+            schoolName: document.getElementById('schoolName').value.trim(),
+            city: document.getElementById('city').value.trim(),
+            climate: document.getElementById('climate').value.trim(),
+            roadDesc: document.getElementById('roadDesc').value.trim(),
+            photoDesc: document.getElementById('photoDesc').value.trim(),
+            motorbike: parseInt(document.getElementById('motorbike').value) || 0,
+            bike: parseInt(document.getElementById('bike').value) || 0,
+            walk: parseInt(document.getElementById('walk').value) || 0,
+            parent: parseInt(document.getElementById('parent').value) || 0,
+            bus: parseInt(document.getElementById('bus').value) || 0,
+            other: parseInt(document.getElementById('other').value) || 0,
+            hotspots: document.getElementById('hotspots').value.trim(),
+            specialReq: document.getElementById('specialReq').value.trim()
+        };
+    }
+    
+    let currentReportJson = null;
+    
+    function updateDisplay() {
+        const formData = collectFormData();
+        const report = generateAdvisoryReport(formData);
+        currentReportJson = report;
+        const visualHtml = renderResultToUI(report);
+        const outputDiv = document.getElementById('aiOutputContent');
+        outputDiv.innerHTML = visualHtml;
+        // 同步JSON字串至內部
+        const jsonString = JSON.stringify(report, null, 2);
+        const jsonViewer = document.getElementById('fullJsonView');
+        if(jsonViewer) jsonViewer.innerText = jsonString;
+    }
+    
+    document.getElementById('generateBtn').addEventListener('click', () => {
+        updateDisplay();
+    });
+    
+    document.getElementById('copyJsonBtn').addEventListener('click', () => {
+        if(currentReportJson) {
+            const jsonStr = JSON.stringify(currentReportJson, null, 2);
+            navigator.clipboard.writeText(jsonStr).then(() => {
+                alert('✅ JSON 報告已複製到剪貼簿');
+            }).catch(() => alert('⚠️ 無法複製，手動選取'));
+        } else {
+            alert('尚未生成報告，請點擊「生成 AI 顧問報告」');
+        }
+    });
+    
+    // 頁面載入預設生成一次
+    window.addEventListener('DOMContentLoaded', () => {
+        updateDisplay();
+    });
+</script>
+</body>
+</html>
